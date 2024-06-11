@@ -4,7 +4,7 @@
   "description": "My take on a WebAssembly compiler in TypeScript",
   "main": "index.js",
   "scripts": {
-    "test": "ts-mocha src/**/*_test.ts"
+    "test": "ts-mocha ./**/*_test.ts"
   },
   "author": "Joseph Griffin <jsephgriff@outlook.com>",
   "license": "ISC",
