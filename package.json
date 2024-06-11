@@ -1,0 +1,19 @@
+{
+  "name": "tswebassembly",
+  "version": "1.0.0",
+  "description": "My take on a WebAssembly compiler in TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "test": "ts-mocha src/**/*_test.ts"
+  },
+  "author": "Joseph Griffin <jsephgriff@outlook.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/assert": "^1.5.6",
+    "@types/mocha": "^5.2.7",
+    "assert": "^2.0.0",
+    "mocha": "^10.1.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.8.4"
+    }
+  }
