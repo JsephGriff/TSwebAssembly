@@ -6,7 +6,7 @@ interface Tokenizer {
   type TokenType =
     | "number"
     | "keyword"
-    | "whitespace";
+    | "whitespace"
 
 interface Token {
     type: TokenType;

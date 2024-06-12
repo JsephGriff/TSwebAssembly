@@ -1,3 +1,4 @@
+/// <reference path="./types/tokenizer.d.ts" />
 
 /**
  * List of catagory keywords to tokenize

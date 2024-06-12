@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { parse } from '../parser';
+import { parse } from '../src/parser';
 
 describe('parseTokens', function() {
 

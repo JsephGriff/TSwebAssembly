@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { tokenize } from '../tokenizer';
+import { tokenize } from '../src/tokenizer';
 
 describe('tokenize', function() {
 
