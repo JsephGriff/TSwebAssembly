@@ -1,3 +1,4 @@
+
 interface Tokenizer {
     (input: string): Token[];
   }
