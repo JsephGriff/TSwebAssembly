@@ -1,36 +1,31 @@
-import { ExpressionNode, ProgramNode } from "./types/parser";
-import { Traverse } from "./types/traverse";
+import { ProgramNode } from "./types/parser";
+import { Traverse, Visitor } from "./types/traverse";
 
 /**
- * Performs a post-order traversal of an AST, invoking a visitor function on each node.
+ * Performs a depth-first post-order traversal of the AST.
  *
- * @param {(ExpressionNode | ExpressionNode[])} nodes - The AST to traverse or an array of ASTs.
- * @param {(node: ExpressionNode) => void} visitor - The function to invoke on each node.
+ * @param {ProgramNode | ProgramNode[]} node - The node(s) to traverse.
+ * @param {Visitor} visitor - The visitor function to apply to each node.
  * @returns {void}
  */
-const traverse: Traverse = (
-  nodes: ExpressionNode | ExpressionNode[],
-  visitor: (node: ExpressionNode) => void
-): void => {
-  const traverseNodes = (nodes: ExpressionNode | ExpressionNode[]): void => {
-    const nodesArray = Array.isArray(nodes) ? nodes : [nodes];
-    nodesArray.forEach((node) => {
-      Object.values(node).forEach((value) => {
-        if (Array.isArray(value)) {
-          value.forEach((childNode) => {
-            if (typeof childNode === "object" && "type" in childNode) {
-              traverseNodes([childNode]);
-            }
-          });
-        } else if (typeof value === "object" && "type" in value) {
-          traverseNodes([value]);
-        }
-      });
-      visitor(node as ExpressionNode);
-    });
-  };
+// Depth-first post-order traversal of the AST
+const traverse: Traverse = (node: ProgramNode | ProgramNode[], visitor: Visitor): void => {
+  // If the node is an array, traverse each element. Otherwise, create an array with the node.
+  const nodes = Array.isArray(node) ? node : [node];
+  
+  // Traverse each node in the array
+  nodes.forEach(value => traverseNode(value, visitor));
+};
 
-  traverseNodes(nodes);
+const traverseNode = (node: ProgramNode, visitor: Visitor): void => {
+  Object.values(node).forEach(value => {
+    if (Array.isArray(value)) {
+      value.forEach(childNode => traverseNode(childNode, visitor));
+    } else if (typeof value === 'object' && value !== null && 'type' in value) {
+      traverseNode(value, visitor);
+    }
+  });
+  visitor(node);
 };
   
-export default traverse;
+  export default traverse;

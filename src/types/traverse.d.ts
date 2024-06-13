@@ -1,9 +1,9 @@
-import { ExpressionNode } from "./parser";
+import { ProgramNode } from "./parser";
 
 interface Traverse {
-    (nodes: ExpressionNode[] | ExpressionNode, visitor: Visitor): void;
+    (nodes: ProgramNode[] | ProgramNode, visitor: Visitor): void;
   }
   
   interface Visitor {
-    (node: ExpressionNode): void;
+    (node: ProgramNode): void;
   }
