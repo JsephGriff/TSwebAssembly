@@ -1,5 +1,5 @@
 import { operators } from "./tokenizer";
-import { ExpressionNode, StatementNode, Operator, Parser, ParserStep} from "./types/parser";
+import { ExpressionNode, StatementNode, Operator, Parser, ParserStep, IdentifierNode} from "./types/parser";
 
 
 export class ParserError extends Error {
@@ -52,39 +52,38 @@ export const parse: Parser = tokens => {
  * @return {ExpressionNode} The parsed expression node.
  * @throws {ParserError} If the token type is unexpected.
  */
-    const parseExpression: ParserStep<ExpressionNode> = () => {
-      let node: ExpressionNode;
-      switch (currentToken.type) {
+    const parseExpression: ParserStep<ExpressionNode> = (): ExpressionNode => {
+    let node: ExpressionNode;
+    switch (currentToken.type) {
         case "number":
-          node = {
+        node = {
             type: "numberLiteral",
             value: Number(currentToken.value)
-          };
-          eatToken();
-          return node;
+        };
+        eatToken();
+        return node;
         case "identifier":
-          node = { type: "identifier", value: currentToken.value };
-          eatToken();
-          return node;
+        node = { type: "identifier", value: currentToken.value };
+        eatToken();
+        return node;
         case "parens":
-          eatToken("(");
-          const left = parseExpression();
-          const operator = currentToken.value;
-          eatToken();
-          const right = parseExpression();
-          eatToken(")");
-          return {
+        eatToken("(");
+        const left = parseExpression();
+        const operator = currentToken.value;
+        eatToken();
+        const right = parseExpression();
+        eatToken(")");
+        return {
             type: "binaryExpression",
             left,
             right,
             operator: asOperator(operator)
-          };
+        };
         default:
-          throw new ParserError(
+            throw new ParserError(
             `Unexpected token type ${currentToken.type}`,
-            currentToken
-          );
-      }
+            currentToken );
+        }
     };
   
     const parsePrintStatement: ParserStep<StatementNode> = () => {
@@ -95,16 +94,54 @@ export const parse: Parser = tokens => {
       };
     };
 
-    const parseVariableAssignment: ParserStep<
-      StatementNode> = () => {
+    const parseIfStatement: ParserStep<StatementNode> = () => {
+        eatToken("if");
+    
+        const expression = parseExpression();
+    
+        let elseStatements = false;
+        const consequent: StatementNode[] = [];
+        const alternate: StatementNode[] = [];
+        while (!currentTokenIsKeyword("endif")) {
+            if (currentTokenIsKeyword("else")) {
+            eatToken("else");
+            elseStatements = true;
+            }
+            if (elseStatements) {
+                alternate.push(parseStatement());
+            } else {
+                consequent.push(parseStatement());
+            }
+        }
+    
+        eatToken("endif");
+    
+        return { type: "ifStatement", expression, consequent, alternate };
+      };
+    
+    const parseWhileStatement: ParserStep<StatementNode> = () => {
+        eatToken("while");
+    
+        const expression = parseExpression();
+    
+        const statements: StatementNode[] = [];
+        while (!currentTokenIsKeyword("endwhile")) {
+            statements.push(parseStatement());
+        }
+    
+        eatToken("endwhile");
+    
+        return { type: "whileStatement", expression, statements };
+    };
+
+    const parseVariableAssignment: ParserStep<StatementNode> = () => {
         const name = currentToken.value;
         eatToken();
         eatToken("=");
         return { type: "variableAssignment", name, value: parseExpression() };
     };
     
-    const parseVariableDeclarationStatement: ParserStep<
-      StatementNode> = () => {
+    const parseVariableDeclarationStatement: ParserStep<StatementNode> = () => {
         eatToken("var");
         const name = currentToken.value;
         eatToken();
@@ -136,17 +173,44 @@ export const parse: Parser = tokens => {
      * @return {T[]} An array of values of type `T`.
      */
     function parseCommaSeperatedList<T>(foo: () => T): T[] {
-      const args: T[] = [];
-      eatToken("(");
-      while (currentToken.value !== ")") {
-        args.push(foo());
-        if (currentToken.value !== ")") {
-          eatToken(",");
+        const args: T[] = [];
+        eatToken("(");
+        while (currentToken.value !== ")") {
+            args.push(foo());
+            if (currentToken.value !== ")") {
+                eatToken(",");
+            }
         }
-      }
-      eatToken(")");
-      return args;
+        eatToken(")");
+        return args;
     }
+
+    const parseProcStatement: ParserStep<StatementNode> = () => {
+        eatToken("proc");
+    
+        const name = currentToken.value;
+        eatToken();
+    
+        const args = parseCommaSeperatedList(() => {
+            const arg: IdentifierNode = { type: "identifier", value: currentToken.value };
+            eatToken();
+            return arg;
+        });
+    
+        const statements: StatementNode[] = [];
+        while (!currentTokenIsKeyword("endproc")) {
+            statements.push(parseStatement());
+        }
+        eatToken("endproc");
+    
+        return {
+            type: "procStatement",
+            name,
+            args,
+            statements
+        };
+    };
+    
 
     const parseStatement: ParserStep<StatementNode> = () => {
         if (currentToken.type === "keyword") {

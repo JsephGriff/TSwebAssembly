@@ -14,10 +14,14 @@ type Operator = typeof operators[number];
 type ExpressionNode = NumberLiteralNode | BinaryExpressionNode | IdentifierNode;
 
 type StatementNode =
-    | PrintStatementNode
-    | VariableDeclarationNode
-    | VariableAssignmentNode
-    | CallStatementNode;
+| PrintStatementNode
+| VariableDeclarationNode
+| VariableAssignmentNode
+| WhileStatementNode
+| CallStatementNode
+| IfStatementNode
+| ProcStatementNode;
+    
 type Program = StatementNode[];
 
 interface VariableDeclarationNode extends ProgramNode {
@@ -60,8 +64,26 @@ interface CallStatementNode extends ProgramNode {
     args: ExpressionNode[];
 }
 
+interface WhileStatementNode extends ProgramNode {
+    type: "whileStatement";
+    expression: ExpressionNode;
+    statements: StatementNode[];
+}
 
+interface ProcStatementNode extends ProgramNode {
+    type: "procStatement";
+    name: string,
+    args: IdentifierNode[];
+    statements: StatementNode[];
+}
 
+  
+interface IfStatementNode extends ProgramNode {
+    type: "ifStatement";
+    expression: ExpressionNode;
+    consequent: StatementNode[];
+    alternate: StatementNode[];
+}
 
 interface ParserStep<T extends ProgramNode> {
     (): T;
