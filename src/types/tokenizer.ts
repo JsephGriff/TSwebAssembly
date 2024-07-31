@@ -1,4 +1,3 @@
-
 interface Tokenizer {
     (input: string): Token[];
   }
@@ -7,14 +6,19 @@ interface Tokenizer {
     | "number"
     | "keyword"
     | "whitespace"
-
-interface Token {
+    | "parens"
+    | "operator"
+    | "identifier"
+    | "assignment";
+  
+  interface Token {
     type: TokenType;
     value: string;
     line?: number;
     char?: number;
-    }
-    
-    interface Matcher {
+  }
+  
+  interface Matcher {
     (input: string, index: number): Token | null;
-    }
+  }
+  

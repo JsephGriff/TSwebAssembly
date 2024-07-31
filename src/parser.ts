@@ -1,6 +1,4 @@
 import { operators } from "./tokenizer";
-import { ExpressionNode, StatementNode, Operator, Parser, ParserStep, IdentifierNode} from "./types/parser";
-
 
 export class ParserError extends Error {
     token: Token;

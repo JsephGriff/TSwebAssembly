@@ -1,10 +1,8 @@
-import { ProgramNode } from "./types/parser";
-import { Traverse, Visitor } from "./types/traverse";
 
 /**
  * Performs a depth-first post-order traversal of the AST.
  *
- * @param {ProgramNode | ProgramNode[]} node - The node(s) to traverse.
+ * @param {Program | ProgramNode[]} node - The node(s) to traverse.
  * @param {Visitor} visitor - The visitor function to apply to each node.
  * @returns {void}
  */

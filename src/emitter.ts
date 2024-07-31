@@ -5,10 +5,7 @@ import {
     encodeString,
     ieee754
   } from "./encoding";
-import { ExpressionNode, ProcStatementNode, StatementNode, Program, IdentifierNode, ProgramNode, NumberLiteralNode, BinaryExpressionNode } from "./types/parser";
-import { TransformedProgram } from "./types/transformer";
-import { Emitter } from "./types/emitter";
-  
+
 const flatten = (arr: any[]) => [].concat.apply([], arr);
 
 // https://webassembly.github.io/spec/core/binary/modules.html#sections
@@ -64,7 +61,7 @@ enum Section {
     i32_trunc_f32_s = 0xa8
   }
   
-  const binaryOpcode = {
+  const binaryOpcode : { [key: string]: Opcodes } = {
     "+": Opcodes.f32_add,
     "-": Opcodes.f32_sub,
     "*": Opcodes.f32_mul,
@@ -223,43 +220,6 @@ enum Section {
             code.push(Opcodes.end);
             break;
           case "callStatement":
-            // if (statement.name === "setpixel") {
-            //   // compute and cache the setpixel parameters
-            //   emitExpression(statement.args[0]);
-            //   code.push(Opcodes.set_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("x")));
-  
-            //   emitExpression(statement.args[1]);
-            //   code.push(Opcodes.set_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("y")));
-  
-            //   emitExpression(statement.args[2]);
-            //   code.push(Opcodes.set_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("color")));
-  
-            //   // compute the offset (x * 100) + y
-            //   code.push(Opcodes.get_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("y")));
-            //   code.push(Opcodes.f32_const);
-            //   code.push(...ieee754(100));
-            //   code.push(Opcodes.f32_mul);
-  
-            //   code.push(Opcodes.get_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("x")));
-            //   code.push(Opcodes.f32_add);
-  
-            //   // convert to an integer
-            //   code.push(Opcodes.i32_trunc_f32_s);
-  
-            //   // fetch the color
-            //   code.push(Opcodes.get_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("color")));
-            //   code.push(Opcodes.i32_trunc_f32_s);
-  
-            //   // write
-            //   code.push(Opcodes.i32_store_8);
-            //   code.push(...[0x00, 0x00]); // align and offset
-            // } else 
             {
               statement.args.forEach(arg => {
                 emitExpression(arg);
@@ -345,11 +305,11 @@ enum Section {
       ])
     );
 
-    // the code section contains vectors of functions
-    const codeSection = createSection(
-      Section.code,
-      encodeVector(funcTypes.map(([_1, params, _2]) => codeFromProc(params, ast)))
-    );
+     // the code section contains vectors of functions
+  const codeSection = createSection(
+    Section.code,
+    encodeVector(ast.map(a => codeFromProc(a, ast)))
+  );
 
     return Uint8Array.from([
       ...magicModuleHeader,
