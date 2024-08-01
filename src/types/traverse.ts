@@ -1,7 +1,8 @@
 interface Traverse {
     (nodes: ProgramNode[] | ProgramNode, visitor: Visitor): void;
-  }
+}
   
-  interface Visitor {
+interface Visitor {
     (node: ProgramNode): void;
-  }
+}
+  

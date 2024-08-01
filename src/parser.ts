@@ -209,30 +209,35 @@ export const parse: Parser = tokens => {
         };
     };
     
-
     const parseStatement: ParserStep<StatementNode> = () => {
         if (currentToken.type === "keyword") {
-          switch (currentToken.value) {
-            case "print":
-              return parsePrintStatement();
-            case "var":
-              return parseVariableDeclarationStatement();
-            default:
-              throw new ParserError(
-                `Unknown keyword ${currentToken.value}`,
-                currentToken
-              );
-          }
+            switch (currentToken.value) {
+                case "print":
+                   return parsePrintStatement();
+                case "var":
+                    return parseVariableDeclarationStatement();
+                case "while":
+                    return parseWhileStatement();
+                case "if":
+                    return parseIfStatement();
+                case "proc":
+                    return parseProcStatement();
+                default:
+                    throw new ParserError(
+                        `Unknown keyword ${currentToken.value}`,
+                        currentToken
+                    );
+            }
         } else if (currentToken.type === "identifier") {
-          if (nextToken.value === "=") {
-            return parseVariableAssignment();
-          } else {
-            return parseCallStatementNode();
-          }
-        } else {
-            throw new ParserError(`Undefined token: ${currentToken.value}`, currentToken);
-        }
-      };
+            if (nextToken.value === "=") {
+                return parseVariableAssignment();
+            } else {
+                return parseCallStatementNode();
+            }
+        }   else {
+                throw new ParserError(`Undefined token: ${currentToken.value}`, currentToken);
+            }
+    };
   
     const nodes: StatementNode[] = [];
     while (currentToken) {

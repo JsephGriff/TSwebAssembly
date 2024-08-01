@@ -1,15 +1,15 @@
-import traverse from "./traverse";
 import {
     unsignedLEB128,
     signedLEB128,
     encodeString,
     ieee754
   } from "./encoding";
-
-const flatten = (arr: any[]) => [].concat.apply([], arr);
-
-// https://webassembly.github.io/spec/core/binary/modules.html#sections
-enum Section {
+  import traverse from "./traverse";
+  
+  const flatten = (arr: any[]) => [].concat.apply([], arr);
+  
+  // https://webassembly.github.io/spec/core/binary/modules.html#sections
+  enum Section {
     custom = 0,
     type = 1,
     import = 2,
@@ -61,7 +61,7 @@ enum Section {
     i32_trunc_f32_s = 0xa8
   }
   
-  const binaryOpcode : { [key: string]: Opcodes } = {
+  const binaryOpcode = {
     "+": Opcodes.f32_add,
     "-": Opcodes.f32_sub,
     "*": Opcodes.f32_mul,
@@ -116,36 +116,31 @@ enum Section {
       node.args.map((arg, index) => [arg.value, index])
     );
   
-    /**
-     * Returns the index of a symbol in the symbols map. If the symbol does not
-     * exist, it is added to the map with the next available index.
-     *
-     * @param {string} name - The name of the symbol to retrieve or add to the map.
-     * @return {number} The index of the symbol in the symbols map.
-     */
-    const localIndexForSymbol = (name: string): number => {
+    const localIndexForSymbol = (name: string) => {
       if (!symbols.has(name)) {
         symbols.set(name, symbols.size);
       }
-      return symbols.get(name) as number;
+      return symbols.get(name);
     };
-  
-    const emitExpression = (node: ExpressionNode) => 
-      traverse(node, (node: ProgramNode) => { // Most likely named wrong.
-        switch (node.type) {
-          case "numberLiteral":
-            code.push(Opcodes.f32_const);
-            code.push(...ieee754((node as NumberLiteralNode).value));
-            break;
-          case "identifier":
-            code.push(Opcodes.get_local);
-            code.push(...unsignedLEB128(localIndexForSymbol((node as IdentifierNode).value)));
-            break;
-          case "binaryExpression":
-            code.push(binaryOpcode[(node as BinaryExpressionNode).operator]);
-            break;
-      }
-      });
+    const emitExpression = (node: ExpressionNode) =>
+        traverse(node, (node) => {
+          switch (node.type) {
+            case "numberLiteral":
+              const numberLiteralNode = node as NumberLiteralNode; // assert the type
+              code.push(Opcodes.f32_const);
+              code.push(...ieee754(numberLiteralNode.value));
+              break;
+            case "identifier":
+              const identifierNode = node as IdentifierNode; // assert the type
+              code.push(Opcodes.get_local);
+              code.push(...unsignedLEB128(localIndexForSymbol(identifierNode.value) ?? 0));
+              break;
+            case "binaryExpression":
+              const binaryExpressionNode = node as BinaryExpressionNode; // assert the type
+              code.push(binaryOpcode[binaryExpressionNode.operator]);
+              break;
+          }
+        });
   
     const emitStatements = (statements: StatementNode[]) =>
       statements.forEach(statement => {
@@ -158,12 +153,12 @@ enum Section {
           case "variableDeclaration":
             emitExpression(statement.initializer);
             code.push(Opcodes.set_local);
-            code.push(...unsignedLEB128(localIndexForSymbol(statement.name)));
+            code.push(...unsignedLEB128(localIndexForSymbol(statement.name) ?? 0));
             break;
           case "variableAssignment":
             emitExpression(statement.value);
             code.push(Opcodes.set_local);
-            code.push(...unsignedLEB128(localIndexForSymbol(statement.name)));
+            code.push(...unsignedLEB128(localIndexForSymbol(statement.name) ?? 0));
             break;
           case "whileStatement":
             // outer block
@@ -220,14 +215,50 @@ enum Section {
             code.push(Opcodes.end);
             break;
           case "callStatement":
-            {
+            // if (statement.name === "setpixel") {
+            //   // compute and cache the setpixel parameters
+            //   emitExpression(statement.args[0]);
+            //   code.push(Opcodes.set_local);
+            //   code.push(...unsignedLEB128(localIndexForSymbol("x") ?? 0));
+  
+            //   emitExpression(statement.args[1]);
+            //   code.push(Opcodes.set_local);
+            //   code.push(...unsignedLEB128(localIndexForSymbol("y") ?? 0));
+  
+            //   emitExpression(statement.args[2]);
+            //   code.push(Opcodes.set_local);
+            //   code.push(...unsignedLEB128(localIndexForSymbol("color") ?? 0));
+  
+            //   // compute the offset (x * 100) + y
+            //   code.push(Opcodes.get_local);
+            //   code.push(...unsignedLEB128(localIndexForSymbol("y") ?? 0));
+            //   code.push(Opcodes.f32_const);
+            //   code.push(...ieee754(100));
+            //   code.push(Opcodes.f32_mul);
+  
+            //   code.push(Opcodes.get_local);
+            //   code.push(...unsignedLEB128(localIndexForSymbol("x") ?? 0));
+            //   code.push(Opcodes.f32_add);
+  
+            //   // convert to an integer
+            //   code.push(Opcodes.i32_trunc_f32_s);
+  
+            //   // fetch the color
+            //   code.push(Opcodes.get_local);
+            //   code.push(...unsignedLEB128(localIndexForSymbol("color") ?? 0));
+            //   code.push(Opcodes.i32_trunc_f32_s);
+  
+            //   // write
+            //   code.push(Opcodes.i32_store_8);
+            //   code.push(...[0x00, 0x00]); // align and offset
+            // } else {
               statement.args.forEach(arg => {
                 emitExpression(arg);
               });
               const index = program.findIndex(f => f.name === statement.name);
               code.push(Opcodes.call);
               code.push(...unsignedLEB128(index + 1));
-            }
+            // }
             break;
         }
       });
@@ -248,28 +279,27 @@ enum Section {
       ...encodeVector([Valtype.f32]),
       emptyArray
     ];
-
-    const funcTypes = Array.from(new Set(ast.map(proc => [
+  
+    // TODO: optimise - some of the procs might have the same type signature
+    const funcTypes = ast.map(proc => [
       functionType,
       ...encodeVector(proc.args.map(_ => Valtype.f32)),
       emptyArray
-    ])));
-
+    ]);
+  
     // the type section is a vector of function types
     const typeSection = createSection(
       Section.type,
       encodeVector([printFunctionType, ...funcTypes])
     );
-
+  
     // the function section is a vector of type indices that indicate the type of each function
     // in the code section
     const funcSection = createSection(
       Section.func,
-      encodeVector(ast.map(proc => funcTypes.indexOf(
-        [functionType, ...encodeVector(proc.args.map(_ => Valtype.f32)), emptyArray]
-      )))
+      encodeVector(ast.map((_, index) => index + 1 /* type index */))
     );
-
+  
     // the import section is a vector of imported functions
     const printFunctionImport = [
       ...encodeString("env"),
@@ -277,7 +307,7 @@ enum Section {
       ExportType.func,
       0x00 // type index
     ];
-
+  
     const memoryImport = [
       ...encodeString("env"),
       ...encodeString("memory"),
@@ -287,12 +317,12 @@ enum Section {
       0x00,
       0x01
     ];
-
+  
     const importSection = createSection(
       Section.import,
       encodeVector([printFunctionImport, memoryImport])
     );
-
+  
     // the export section is a vector of exported functions
     const exportSection = createSection(
       Section.export,
@@ -304,13 +334,13 @@ enum Section {
         ]
       ])
     );
-
-     // the code section contains vectors of functions
-  const codeSection = createSection(
-    Section.code,
-    encodeVector(ast.map(a => codeFromProc(a, ast)))
-  );
-
+  
+    // the code section contains vectors of functions
+    const codeSection = createSection(
+      Section.code,
+      encodeVector(ast.map(a => codeFromProc(a, ast)))
+    );
+  
     return Uint8Array.from([
       ...magicModuleHeader,
       ...moduleVersion,
@@ -321,3 +351,4 @@ enum Section {
       ...codeSection
     ]);
   };
+  

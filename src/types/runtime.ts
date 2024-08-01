@@ -7,6 +7,7 @@ interface TickFunction {
 }
   
 interface Environment {
+    [x: string]: any;
     print: PrintFunction;
 }
   
