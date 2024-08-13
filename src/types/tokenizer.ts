@@ -6,7 +6,9 @@ interface Tokenizer {
     | "number"
     | "keyword"
     | "whitespace"
+    | "type"
     | "parens"
+    | "brackets"
     | "operator"
     | "identifier"
     | "assignment";

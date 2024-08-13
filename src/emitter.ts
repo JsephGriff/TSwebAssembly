@@ -54,6 +54,7 @@ import {
     f32_lt = 0x5d,
     f32_gt = 0x5e,
     i32_and = 0x71,
+    i32_or = 0x72,
     f32_add = 0x92,
     f32_sub = 0x93,
     f32_mul = 0x94,
@@ -69,7 +70,8 @@ import {
     "==": Opcodes.f32_eq,
     ">": Opcodes.f32_gt,
     "<": Opcodes.f32_lt,
-    "&&": Opcodes.i32_and
+    "&&": Opcodes.i32_and,
+    "||": Opcodes.i32_or
   };
   
   // http://webassembly.github.io/spec/core/binary/modules.html#export-section

@@ -30,7 +30,16 @@ export const parse: Parser = tokens => {
   
     const currentTokenIsKeyword = (name: string) =>
       currentToken.value === name && currentToken.type === "keyword";
-  
+    
+    const currentTokenIsBracket = (name: string) =>
+        currentToken.value === name && currentToken.type === "brackets";
+
+    /**
+     * Consumes the current token in the token stream, if it matches the expected value.
+     *
+     * @param {string} [value] - The expected value of the token. If provided, the function will throw an error if the current token does not match.
+     * @throws {ParserError} If the current token does not match the expected value.
+     */
     const eatToken = (value?: string) => {
       if (value && value !== currentToken.value) {
         throw new ParserError(
@@ -44,12 +53,12 @@ export const parse: Parser = tokens => {
       nextToken = tokenIterator.next().value;
     };
   
-/**
- * Parses an expression in the language.
- *
- * @return {ExpressionNode} The parsed expression node.
- * @throws {ParserError} If the token type is unexpected.
- */
+    /**
+     * Parses an expression in the metsu language.
+     *
+     * @return {ExpressionNode} The parsed expression node.
+     * @throws {ParserError} If the token type is unexpected.
+     */
     const parseExpression: ParserStep<ExpressionNode> = (): ExpressionNode => {
     let node: ExpressionNode;
     switch (currentToken.type) {
@@ -84,6 +93,11 @@ export const parse: Parser = tokens => {
         }
     };
   
+    /**
+     * Parses a print statement in the metsu language.
+     *
+     * @return {StatementNode} The parsed print statement node.
+     */
     const parsePrintStatement: ParserStep<StatementNode> = () => {
       eatToken("print");
       return {
@@ -92,46 +106,56 @@ export const parse: Parser = tokens => {
       };
     };
 
+    /**
+     * Parses an if statement in the metsu language.
+     *
+     * @return {StatementNode} The parsed if statement node.
+     */
     const parseIfStatement: ParserStep<StatementNode> = () => {
         eatToken("if");
     
         const expression = parseExpression();
-    
-        let elseStatements = false;
+        
+        eatToken("{");
         const consequent: StatementNode[] = [];
         const alternate: StatementNode[] = [];
-        while (!currentTokenIsKeyword("endif")) {
-            if (currentTokenIsKeyword("else")) {
-            eatToken("else");
-            elseStatements = true;
-            }
-            if (elseStatements) {
-                alternate.push(parseStatement());
-            } else {
+        while (!currentTokenIsBracket("}")) {
                 consequent.push(parseStatement());
-            }
         }
-    
-        eatToken("endif");
-    
+        eatToken("}");
+        if (currentToken && currentTokenIsKeyword("else")) {
+            eatToken("else");
+            eatToken("{");
+            alternate.push(parseStatement());
+            eatToken("}");
+        }
+        
         return { type: "ifStatement", expression, consequent, alternate };
       };
     
+    /**
+     * Parses a while statement in the metsu language.
+     *
+     * @return {StatementNode} The parsed while statement node.
+     */
     const parseWhileStatement: ParserStep<StatementNode> = () => {
         eatToken("while");
     
-        const expression = parseExpression();
-    
+        const expression = parseExpression(); //condition to loop
+        eatToken("{");
         const statements: StatementNode[] = [];
-        while (!currentTokenIsKeyword("endwhile")) {
+        while (!currentTokenIsBracket("}")) {
             statements.push(parseStatement());
         }
-    
-        eatToken("endwhile");
-    
+        eatToken("}");
         return { type: "whileStatement", expression, statements };
     };
 
+    /**
+     * Parses a variable assignment in the metsu language.
+     *
+     * @return {StatementNode} The parsed variable assignment node.
+     */
     const parseVariableAssignment: ParserStep<StatementNode> = () => {
         const name = currentToken.value;
         eatToken();
@@ -139,8 +163,13 @@ export const parse: Parser = tokens => {
         return { type: "variableAssignment", name, value: parseExpression() };
     };
     
+    /**
+     * Parses a variable declaration statement in the metsu language.
+     *
+     * @return {StatementNode} The parsed variable declaration statement node.
+     */
     const parseVariableDeclarationStatement: ParserStep<StatementNode> = () => {
-        eatToken("var");
+        eatToken();
         const name = currentToken.value;
         eatToken();
         eatToken("=");
@@ -151,6 +180,11 @@ export const parse: Parser = tokens => {
         };
       };
   
+    /**
+     * Parses a call statement node in the language.
+     *
+     * @return {StatementNode} The parsed call statement node.
+     */
     const parseCallStatementNode: ParserStep<StatementNode> = () => {
         const name = currentToken.value;
         eatToken();
@@ -165,10 +199,10 @@ export const parse: Parser = tokens => {
       };
 
     /**
-     * Parses a comma-separated list of values by repeatedly calling the provided function `foo`.
+     * Parses a list of comma-separated values.
      *
-     * @param {() => T} foo - A function that returns a value of type `T`.
-     * @return {T[]} An array of values of type `T`.
+     * @param {function} foo - A function that returns a value of type T.
+     * @return {T[]} An array of values of type T.
      */
     function parseCommaSeperatedList<T>(foo: () => T): T[] {
         const args: T[] = [];
@@ -183,6 +217,11 @@ export const parse: Parser = tokens => {
         return args;
     }
 
+    /**
+     * Parses a procedure statement in the metsu language.
+     *
+     * @return {StatementNode} The parsed procedure statement node.
+     */
     const parseProcStatement: ParserStep<StatementNode> = () => {
         eatToken("proc");
     
@@ -209,13 +248,16 @@ export const parse: Parser = tokens => {
         };
     };
     
+    /**
+     * Parses a statement in the metsu language.
+     *
+     * @return {StatementNode} The parsed statement node.
+     */
     const parseStatement: ParserStep<StatementNode> = () => {
         if (currentToken.type === "keyword") {
             switch (currentToken.value) {
                 case "print":
                    return parsePrintStatement();
-                case "var":
-                    return parseVariableDeclarationStatement();
                 case "while":
                     return parseWhileStatement();
                 case "if":
@@ -228,7 +270,9 @@ export const parse: Parser = tokens => {
                         currentToken
                     );
             }
-        } else if (currentToken.type === "identifier") {
+        } else if (currentToken.type === "type"){
+            return parseVariableDeclarationStatement();
+        }else if (currentToken.type === "identifier") {
             if (nextToken.value === "=") {
                 return parseVariableAssignment();
             } else {

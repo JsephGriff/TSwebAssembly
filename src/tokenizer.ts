@@ -2,15 +2,29 @@ export const keywords = [
     "print",
     "var",
     "while",
-    "endwhile",
     "if",
-    "endif",
     "else",
     "proc",
     "endproc"
   ];
-  export const operators = ["+", "-", "*", "/", "==", "<", ">", "&&", ","];
+  export const types = [
+    "Null",
+    "bool",
+    "int",
+    "float",
+    "char",
+    "string",
+    "obj",
+    "void"
+  ];
+  export const operators = ["+", "-", "*", "/", "%", "==", "!=", "<=", ">=", "<", ">", "&&", "||", "," ];
   
+  /**
+   * Escapes special characters in a string to make it safe for use in a regular expression.
+   *
+   * @param {string} text - The input string to be escaped.
+   * @return {string} The escaped string.
+   */
   const escapeRegEx = (text: string) =>
     text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
   
@@ -40,34 +54,28 @@ export const keywords = [
   const matchers = [
     regexMatcher("^-?[.0-9]+([eE]-?[0-9]{2})?", "number"),
     regexMatcher(`^(${keywords.join("|")})`, "keyword"),
+    regexMatcher(`^(${types.join("|")})`, "type"),
     regexMatcher("^\\s+", "whitespace"),
     regexMatcher(`^(${operators.map(escapeRegEx).join("|")})`, "operator"),
     regexMatcher(`^[a-zA-Z]+`, "identifier"),
     regexMatcher(`^=`, "assignment"),
-    regexMatcher("^[()]{1}", "parens")
+    regexMatcher("^[()]{1}", "parens"),
+    regexMatcher("^[{}]{1}", "brackets")
   ];
   
+  /**
+   * Returns the location of a character in a string, given its index.
+   *
+   * @param {string} input - The input string.
+   * @param {number} index - The index of the character in the string.
+   * @return {{ char: number, line: number }} An object containing the character position and line number.
+   */
   const locationForIndex = (input: string, index: number) => ({
     char: index - input.lastIndexOf("\n", index) - 1,
     line: input.substring(0, index).split("\n").length - 1
   });
-  
-//   export const tokenize: Tokenizer = input => {
-//     const tokens: Token[] = [];
-//     let index = 0;
-//     while (index < input.length) {
-//       const matches = matchers.map(m => m(input, index)).filter(f => f)
-//       const match = matches[0];
-//       if(match === null) {
-//         throw new Error("match is null!"); //Safe Typechecking.
-//       }
-//       if (match.type !== "whitespace") {
-//         tokens.push(match);
-//       }
-//       index += match.value.length;
-//     }
-//     return tokens;
-//   };
+
+//Tokenize input string to be parsed.
 export const tokenize: Tokenizer = input => {
     const tokens: Token[] = [];
     let index = 0;
@@ -77,7 +85,7 @@ export const tokenize: Tokenizer = input => {
         // take the highest priority match
         const match = matches[0];
         if(match === null) {
-            throw new Error("match is null!"); //Safe Typechecking, might cause irregularities.
+            throw new Error("match is null!");
         }
         if (match.type !== "whitespace") {
           tokens.push({ ...match, ...locationForIndex(input, index) });

@@ -18,27 +18,27 @@ let apps = [
     },
     {
       name: "variable declaration",
-      input: "var f = 22 print f",
+      input: "int f = 22 print f",
       output: [22]
     },
     {
       name: "variable declaration",
-      input: "var foo = 21 print foo",
+      input: "int foo = 21 print foo",
       output: [21]
     },
     {
       name: "floating point variable declaration",
-      input: "var f = 22.5 print f",
+      input: "float f = 22.5 print f",
       output: [22.5]
     },
     {
       name: "variable assignment",
-      input: "var f = 22 f = (f+1) print f",
+      input: "int f = 22 f = (f+1) print f",
       output: [23]
     },
     {
       name: "floating point variable assignment",
-      input: "var f = 22.5 f = (f+1.5) print f",
+      input: "float f = 22.5 f = (f+1.5) print f",
       output: [24]
     },
     {
@@ -48,32 +48,54 @@ let apps = [
     },
     {
       name: "while statements",
-      input: "var f = 0 while (f < 5) f = (f + 1) print f endwhile",
+      input: "int f = 0 while (f < 5) {f = (f + 1) print f}",
       output: [1, 2, 3, 4, 5]
+    },
+    {
+        name: "complex while statements",
+        input: "int f = 0 int i = 0 int j = 0 while (i < 5) {while (j < 2) { j = (j + 1) f = (f + 1) print f } j = 0i = (i + 1) }",
+        output: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     },
     {
       name: "if statement",
       input: `
-  var f = 5
-  if (f < 10)
-    print 2
-  endif
-  if (f > 10)
-    print 3
-  endif
+        int f = 5
+        if (f < 10)
+            {print 2}
+        if (f > 10)
+            {print 3}
       `,
       output: [2]
     },
     {
       name: "else statement operator",
       input: `
-  if (5 < 3)
-    print 2
-  else
-    print 3
-  endif
-      `,
+        if (5 < 3){
+            print 2
+            }
+        else
+            {print 3}
+            `,
       output: [3]
+    },
+    {
+        name: "if or statement",
+        input: `
+          int f = 5
+          if ((f == 3) || (f < 10))
+              {print 2} else {print 3}
+        `,
+        output: [2]
+      },
+    {
+        name: "if and statement",
+        input: `
+          int f = 5
+          int g = 6
+          if ((f == 5) && (g == 6))
+              {print 1} else {print 3}
+        `,
+        output: [1]
     },
     {
       name: "support a single main proc",
@@ -106,8 +128,5 @@ let apps = [
       output: [29]
     }
   ];
-  
-//   // https://github.com/facebook/jest/issues/7280
-//   test.skip("skip", () => {});
   
   export default apps;
