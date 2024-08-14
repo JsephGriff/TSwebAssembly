@@ -1,11 +1,9 @@
 export const keywords = [
     "print",
-    "var",
     "while",
     "if",
     "else",
-    "proc",
-    "endproc"
+    "proc"
   ];
   export const types = [
     "Null",

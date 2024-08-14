@@ -101,30 +101,35 @@ let apps = [
       name: "support a single main proc",
       input: `
     proc main()
+    {
     print 22
-    endproc`,
+    }`,
       output: [22]
     },
     {
       name: "supports procedure invocation",
       input: `
     proc foo()
+    {
       print 27
-    endproc
+    }
     proc main()
+    {
       foo()
-    endproc`,
+    }`,
       output: [27]
     },
     {
       name: "supports procedure invocation with arguments",
       input: `
     proc foo(f)
+    {
       print (f + 1)
-    endproc
+    }
     proc main()
+    {
       foo(28)
-    endproc`,
+    }`,
       output: [29]
     }
   ];

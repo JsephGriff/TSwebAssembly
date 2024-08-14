@@ -233,12 +233,12 @@ export const parse: Parser = tokens => {
             eatToken();
             return arg;
         });
-    
+        eatToken("{");
         const statements: StatementNode[] = [];
-        while (!currentTokenIsKeyword("endproc")) {
+        while (!currentTokenIsBracket("}")) {
             statements.push(parseStatement());
         }
-        eatToken("endproc");
+        eatToken("}");
     
         return {
             type: "procStatement",
