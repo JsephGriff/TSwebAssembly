@@ -14,6 +14,5 @@ export const transformer: ASTTransformer = (ast: Program) => {
   
       ast = [mainProc, ...ast.filter(a => a.type === "procStatement")];
     }
-  
     return ast.map(a => a as ProcStatementNode);
   };

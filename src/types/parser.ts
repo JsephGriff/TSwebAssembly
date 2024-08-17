@@ -8,7 +8,7 @@ interface Parser {
   
   type Operator = "+" | "-" | "/" | "*" | "==" | ">" | "<" | "&&";
   
-  type ExpressionNode = NumberLiteralNode | BinaryExpressionNode | IdentifierNode;
+  type ExpressionNode = NumberLiteralNode | BinaryExpressionNode | IdentifierNode | ReturnExpressionNode;
   
   type StatementNode =
     | PrintStatementNode
@@ -17,7 +17,8 @@ interface Parser {
     | WhileStatementNode
     | CallStatementNode
     | IfStatementNode
-    | ProcStatementNode;
+    | ProcStatementNode
+    | ReturnStatementNode;
   
   type Program = StatementNode[];
   
@@ -41,6 +42,16 @@ interface Parser {
   interface IdentifierNode extends ProgramNode {
     type: "identifier";
     value: string;
+  }
+
+  interface ReturnStatementNode extends ProgramNode {
+    type: "returnStatement";
+    value: ExpressionNode;
+  }
+
+  interface ReturnExpressionNode extends ProgramNode {
+    type: "returnExpression";
+    value: StatementNode[];
   }
   
   interface BinaryExpressionNode extends ProgramNode {

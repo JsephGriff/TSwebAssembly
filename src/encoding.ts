@@ -1,3 +1,9 @@
+/**
+ * Encodes a number in IEEE 754 floating point format.
+ *
+ * @param {number} n - The number to encode.
+ * @return {Uint8Array} The encoded number as a Uint8Array.
+ */
 export const ieee754 = (n: number) => {
     const buf = Buffer.allocUnsafe(4);
     buf.writeFloatLE(n, 0);

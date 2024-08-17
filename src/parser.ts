@@ -70,8 +70,15 @@ export const parse: Parser = tokens => {
         eatToken();
         return node;
         case "identifier":
-        node = { type: "identifier", value: currentToken.value };
-        eatToken();
+        if(nextToken && nextToken.type === "parens" && nextToken.value === "("){
+            const returns: StatementNode[] = [];
+            returns.push(parseStatement())
+            node = {
+                type: "returnExpression", value: returns };
+        } else {
+            node = { type: "identifier", value: currentToken.value };
+            eatToken();
+        }
         return node;
         case "parens":
         eatToken("(");
@@ -216,6 +223,10 @@ export const parse: Parser = tokens => {
         eatToken(")");
         return args;
     }
+    const parseReturnStatement: ParserStep<StatementNode> = () => {
+        eatToken("return");
+        return { type: "returnStatement", value: parseExpression() };
+    }
 
     /**
      * Parses a procedure statement in the metsu language.
@@ -239,7 +250,6 @@ export const parse: Parser = tokens => {
             statements.push(parseStatement());
         }
         eatToken("}");
-    
         return {
             type: "procStatement",
             name,
@@ -264,6 +274,8 @@ export const parse: Parser = tokens => {
                     return parseIfStatement();
                 case "proc":
                     return parseProcStatement();
+                case "return":
+                    return parseReturnStatement();
                 default:
                     throw new ParserError(
                         `Unknown keyword ${currentToken.value}`,

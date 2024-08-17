@@ -3,7 +3,8 @@ export const keywords = [
     "while",
     "if",
     "else",
-    "proc"
+    "proc",
+    "return"
   ];
   export const types = [
     "Null",

@@ -43,6 +43,7 @@ import {
     br_if = 0x0d,
     end = 0x0b,
     call = 0x10,
+    return = 0x0f,
     get_local = 0x20,
     set_local = 0x21,
     i32_store_8 = 0x3a,
@@ -126,22 +127,30 @@ import {
     };
     const emitExpression = (node: ExpressionNode) =>
         traverse(node, (node) => {
-          switch (node.type) {
-            case "numberLiteral":
-              const numberLiteralNode = node as NumberLiteralNode; // assert the type
-              code.push(Opcodes.f32_const);
-              code.push(...ieee754(numberLiteralNode.value));
-              break;
-            case "identifier":
-              const identifierNode = node as IdentifierNode; // assert the type
-              code.push(Opcodes.get_local);
-              code.push(...unsignedLEB128(localIndexForSymbol(identifierNode.value) ?? 0));
-              break;
-            case "binaryExpression":
-              const binaryExpressionNode = node as BinaryExpressionNode; // assert the type
-              code.push(binaryOpcode[binaryExpressionNode.operator]);
-              break;
-          }
+            switch (node.type) {
+                case "numberLiteral":
+                    const numberLiteralNode = node as NumberLiteralNode; // assert the type
+                    code.push(Opcodes.f32_const);
+                    code.push(...ieee754(numberLiteralNode.value));
+                    console.log("added number: ", numberLiteralNode.value);
+                    break;
+                case "identifier":
+                    const identifierNode = node as IdentifierNode; // assert the type
+                    code.push(Opcodes.get_local);
+                    code.push(...unsignedLEB128(localIndexForSymbol(identifierNode.value) ?? 0));
+                    break;
+                case "binaryExpression":
+                    const binaryExpressionNode = node as BinaryExpressionNode; // assert the type
+                    code.push(binaryOpcode[binaryExpressionNode.operator]);
+                    break;
+                case "returnExpression":
+                    const returnExpressionNode = node as ReturnExpressionNode; // assert the type
+                    emitStatements(returnExpressionNode.value);
+                    // console.log("before return is added", code)
+                    //code.push(Opcodes.return);
+                    // console.log("after return is added", code)
+                    break;
+            }
         });
   
     const emitStatements = (statements: StatementNode[]) =>
@@ -154,6 +163,8 @@ import {
             break;
           case "variableDeclaration":
             emitExpression(statement.initializer);
+            console.log("initializer: ", statement.initializer);
+            console.log("name: ", statement.name);
             code.push(Opcodes.set_local);
             code.push(...unsignedLEB128(localIndexForSymbol(statement.name) ?? 0));
             break;
@@ -217,50 +228,19 @@ import {
             code.push(Opcodes.end);
             break;
           case "callStatement":
-            // if (statement.name === "setpixel") {
-            //   // compute and cache the setpixel parameters
-            //   emitExpression(statement.args[0]);
-            //   code.push(Opcodes.set_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("x") ?? 0));
-  
-            //   emitExpression(statement.args[1]);
-            //   code.push(Opcodes.set_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("y") ?? 0));
-  
-            //   emitExpression(statement.args[2]);
-            //   code.push(Opcodes.set_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("color") ?? 0));
-  
-            //   // compute the offset (x * 100) + y
-            //   code.push(Opcodes.get_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("y") ?? 0));
-            //   code.push(Opcodes.f32_const);
-            //   code.push(...ieee754(100));
-            //   code.push(Opcodes.f32_mul);
-  
-            //   code.push(Opcodes.get_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("x") ?? 0));
-            //   code.push(Opcodes.f32_add);
-  
-            //   // convert to an integer
-            //   code.push(Opcodes.i32_trunc_f32_s);
-  
-            //   // fetch the color
-            //   code.push(Opcodes.get_local);
-            //   code.push(...unsignedLEB128(localIndexForSymbol("color") ?? 0));
-            //   code.push(Opcodes.i32_trunc_f32_s);
-  
-            //   // write
-            //   code.push(Opcodes.i32_store_8);
-            //   code.push(...[0x00, 0x00]); // align and offset
-            // } else {
               statement.args.forEach(arg => {
                 emitExpression(arg);
               });
               const index = program.findIndex(f => f.name === statement.name);
               code.push(Opcodes.call);
               code.push(...unsignedLEB128(index + 1));
-            // }
+            break;
+          case "returnStatement":
+            emitExpression(statement.value);
+            console.log("return specified.")
+            code.push(Opcodes.return);
+            
+            console.log(code);
             break;
         }
       });
@@ -281,14 +261,18 @@ import {
       ...encodeVector([Valtype.f32]),
       emptyArray
     ];
-  
+
     // TODO: optimise - some of the procs might have the same type signature
+    console.log(ast);
     const funcTypes = ast.map(proc => [
-      functionType,
-      ...encodeVector(proc.args.map(_ => Valtype.f32)),
-      emptyArray
-    ]);
-  
+        functionType,
+        ...encodeVector(proc.args.map(_ => Valtype.f32)),
+        proc.statements.some(statement => statement.type === "returnStatement")
+          ? encodeVector([Valtype.f32]) // Include return type
+          : emptyArray // No return type
+      ]);
+      console.log("funcTypes: ",funcTypes);
+      console.log("encoded return type: ", encodeVector([Valtype.f32]));
     // the type section is a vector of function types
     const typeSection = createSection(
       Section.type,

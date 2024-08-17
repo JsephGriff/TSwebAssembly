@@ -28,7 +28,7 @@ describe("compiler", () => {
           // Deep equality assertion for output (improve based on data)
          if(result === undefined) {
             //throw error output to console
-            console.log("result.output is undefined");
+            assert.fail("result.output is undefined");
          } else {
             assert.deepStrictEqual(result.output, app.output, "output mismatch");
          }
