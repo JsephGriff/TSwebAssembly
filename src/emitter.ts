@@ -146,9 +146,6 @@ import {
                 case "returnExpression":
                     const returnExpressionNode = node as ReturnExpressionNode; // assert the type
                     emitStatements(returnExpressionNode.value);
-                    // console.log("before return is added", code)
-                    //code.push(Opcodes.return);
-                    // console.log("after return is added", code)
                     break;
             }
         });
@@ -239,8 +236,6 @@ import {
             emitExpression(statement.value);
             console.log("return specified.")
             code.push(Opcodes.return);
-            
-            console.log(code);
             break;
         }
       });
@@ -268,7 +263,7 @@ import {
         functionType,
         ...encodeVector(proc.args.map(_ => Valtype.f32)),
         proc.statements.some(statement => statement.type === "returnStatement")
-          ? encodeVector([Valtype.f32]) // Include return type
+          ? [...encodeVector([Valtype.f32])] // Include return type
           : emptyArray // No return type
       ]);
       console.log("funcTypes: ",funcTypes);
