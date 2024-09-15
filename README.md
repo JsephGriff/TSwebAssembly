@@ -22,13 +22,13 @@ Features
     Easy Integration: Seamlessly integrates with existing web projects.
     Open Source: Licensed under the MIT License.
 
-Installation
-Prerequisites
+# Installation
+### Prerequisites
 
     Node.js (version 14 or higher)
     npm (version 6 or higher)
 
-Steps
+### Steps
 
     Clone the repository:
 
@@ -43,8 +43,8 @@ Steps
 
     npm run build
 
-Usage
-Compiling Metsu Code
+# Usage
+### Compiling Metsu Code
 
 To compile a Metsu file to WebAssembly, use the following command:
 
@@ -54,6 +54,7 @@ Running the WebAssembly Module
 
 You can run the generated WebAssembly module in a web environment. Here’s a basic example using JavaScript:
 
+```
 fetch('output.wasm').then(response =>
   response.arrayBuffer()
 ).then(bytes =>
@@ -61,6 +62,7 @@ fetch('output.wasm').then(response =>
 ).then(results => {
   results.instance.exports.main();
 });
+```
 
 Examples
 Hello World
