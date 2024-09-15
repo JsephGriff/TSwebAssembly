@@ -36,7 +36,7 @@ This project provides a compiler that translates Metsu code into WebAssembly. We
 
 ```
 git clone https://github.com/jsephgriff/TSwebAssembly.git
-cd metsu-wasm-compiler
+cd TSwebAssembly
 ```
 
 2. Install dependencies:
