@@ -15,7 +15,8 @@ Welcome to the WebAssembly Compiler for the Metsu programming language! This pro
 # Introduction
 
 This project provides a compiler that translates Metsu code into WebAssembly. WebAssembly is a binary instruction format for a stack-based virtual machine, designed to be a portable compilation target for programming languages, enabling deployment on the web for client and server applications.
-Features
+
+# Features
 
 * Efficient Compilation: Converts Metsu code to WebAssembly for high-performance execution.
 * Cross-Platform: Supports multiple operating systems including Windows, macOS, and Linux.
