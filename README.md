@@ -1,7 +1,7 @@
-WebAssembly Compiler for Metsu
+# WebAssembly Compiler for Metsu
 
 Welcome to the WebAssembly Compiler for the Metsu programming language! This project, created by Joshnaks, allows you to compile Metsu code into WebAssembly (Wasm) for efficient execution in web environments.
-Table of Contents
+## Table of Contents
 
     Introduction
     Features
@@ -12,7 +12,7 @@ Table of Contents
     License
     Acknowledgements
 
-Introduction
+# Introduction
 
 This project provides a compiler that translates Metsu code into WebAssembly. WebAssembly is a binary instruction format for a stack-based virtual machine, designed to be a portable compilation target for programming languages, enabling deployment on the web for client and server applications.
 Features
