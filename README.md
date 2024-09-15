@@ -34,10 +34,10 @@ This project provides a compiler that translates Metsu code into WebAssembly. We
 
 1. Clone the repository:
 
-`
+```
 git clone https://github.com/yourusername/metsu-wasm-compiler.git
 cd metsu-wasm-compiler
-`
+```
 
 2. Install dependencies:
 `
