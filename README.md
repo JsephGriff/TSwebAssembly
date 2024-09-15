@@ -28,7 +28,7 @@ This project provides a compiler that translates Metsu code into WebAssembly. We
 
 * Node.js (version 14 or higher)
 * npm (version 6 or higher)
-* wasm
+* wasm (version 1.0 or higher)
 
 ### Steps
 
@@ -68,24 +68,18 @@ fetch('output.wasm').then(response =>
 });
 ```
 
-Examples
-Hello World
+# Examples
+Please refer to the examples provided within the [Metsu](https://github.com/JoshnaksPNG/Metsu) Project.
+Note that return values implementation is still a work in progress.
 
-Create a file named hello.metsu with the following content:
-
-print("Hello, WebAssembly!")
-
-Compile and run it:
-
-npm run compile -- hello.metsu -o hello.wasm
-
-Then, use the JavaScript example above to run hello.wasm in your browser.
-Contributing
+# Contributing
 
 We welcome contributions! Please read our Contributing Guide to learn how you can help.
-License
+
+# License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
-Acknowledgements
 
-Special thanks to Joshnaks for creating the Metsu programming language and to all contributors who have helped improve this project.
+# Acknowledgements
+
+Special thanks to Joshnaks for creating the Metsu programming language and to Colin Eberhardt who inspired this project with their conference presentation.
