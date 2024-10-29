@@ -27,76 +27,69 @@ export const parse: Parser = tokens => {
     const tokenIterator = tokens[Symbol.iterator]();
     let currentToken = tokenIterator.next().value;
     let nextToken = tokenIterator.next().value;
-  
+
     const currentTokenIsKeyword = (name: string) =>
-      currentToken.value === name && currentToken.type === "keyword";
-    
+        currentToken.value === name && currentToken.type === "keyword";
+
     const currentTokenIsBracket = (name: string) =>
         currentToken.value === name && currentToken.type === "brackets";
 
-    /**
-     * Consumes the current token in the token stream, if it matches the expected value.
-     *
-     * @param {string} [value] - The expected value of the token. If provided, the function will throw an error if the current token does not match.
-     * @throws {ParserError} If the current token does not match the expected value.
-     */
     const eatToken = (value?: string) => {
-      if (value && value !== currentToken.value) {
-        throw new ParserError(
-            `Unexpected token value, expected ${value}, received ${
-            currentToken.value
-            }`,
-            currentToken
-        );
-      }
-      currentToken = nextToken;
-      nextToken = tokenIterator.next().value;
-    };
-  
-    /**
-     * Parses an expression in the metsu language.
-     *
-     * @return {ExpressionNode} The parsed expression node.
-     * @throws {ParserError} If the token type is unexpected.
-     */
-    const parseExpression: ParserStep<ExpressionNode> = (): ExpressionNode => {
-    let node: ExpressionNode;
-    switch (currentToken.type) {
-        case "number":
-        node = {
-            type: "numberLiteral",
-            value: Number(currentToken.value)
-        };
-        eatToken();
-        return node;
-        case "identifier":
-        if(nextToken && nextToken.type === "parens" && nextToken.value === "("){
-            const returns: StatementNode[] = [];
-            returns.push(parseStatement())
-            node = {
-                type: "returnExpression", value: returns };
-        } else {
-            node = { type: "identifier", value: currentToken.value };
-            eatToken();
-        }
-        return node;
-        case "parens":
-        eatToken("(");
-        const left = parseExpression();
-        const operator = currentToken.value;
-        eatToken();
-        const right = parseExpression();
-        eatToken(")");
-        return {
-            type: "binaryExpression",
-            left,
-            right,
-            operator: asOperator(operator)
-        };
-        default:
+        if (value && value !== currentToken.value) {
             throw new ParserError(
-            `Unexpected token type ${currentToken.type}`,
-            currentToken );
+                `Unexpected token value, expected ${value}, received ${currentToken.value}`,
+                currentToken
+            );
+        }
+        currentToken = nextToken;
+        nextToken = tokenIterator.next().value;
+    };
+
+    const parseExpression: ParserStep<ExpressionNode> = (): ExpressionNode => {
+        if (!currentToken) {
+            throw new ParserError("Unexpected end of input", currentToken);
+        }
+
+        let node: ExpressionNode;
+        switch (currentToken.type) {
+            case "number":
+                node = {
+                    type: "numberLiteral",
+                    value: Number(currentToken.value)
+                };
+                eatToken();
+                return node;
+            case "identifier":
+                if (nextToken && nextToken.type === "parens" && nextToken.value === "(") {
+                    const returns: StatementNode[] = [];
+                    returns.push(parseStatement());
+                    node = {
+                        type: "returnExpression",
+                        value: returns
+                    };
+                } else {
+                    node = { type: "identifier", value: currentToken.value };
+                    eatToken();
+                }
+                return node;
+            case "parens":
+                eatToken("(");
+                const left = parseExpression();
+                const operator = currentToken.value;
+                eatToken();
+                const right = parseExpression();
+                eatToken(")");
+                return {
+                    type: "binaryExpression",
+                    left,
+                    right,
+                    operator: asOperator(operator)
+                };
+            default:
+                throw new ParserError(
+                    `Unexpected token type ${currentToken.type}`,
+                    currentToken
+                );
         }
     };
   

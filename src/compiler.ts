@@ -10,7 +10,6 @@ export const compile: Compiler = src => {
   const ast = parse(tokens);
   const transformedAst = transformer(ast);
   const wasm = emitter(transformedAst);
-  console.log(wasm);
   return wasm;
 };
 

@@ -25,7 +25,7 @@ describe("compiler", () => {
         it(app.name, async function() {
           const result = await executeCode(app.input);
 
-          // Deep equality assertion for output (improve based on data)
+          // Deep equality assertion for output
          if(result === undefined) {
             //throw error output to console
             assert.fail("result.output is undefined");

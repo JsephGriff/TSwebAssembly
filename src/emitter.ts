@@ -132,7 +132,6 @@ import {
                     const numberLiteralNode = node as NumberLiteralNode; // assert the type
                     code.push(Opcodes.f32_const);
                     code.push(...ieee754(numberLiteralNode.value));
-                    console.log("added number: ", numberLiteralNode.value);
                     break;
                 case "identifier":
                     const identifierNode = node as IdentifierNode; // assert the type
@@ -160,8 +159,6 @@ import {
             break;
           case "variableDeclaration":
             emitExpression(statement.initializer);
-            console.log("initializer: ", statement.initializer);
-            console.log("name: ", statement.name);
             code.push(Opcodes.set_local);
             code.push(...unsignedLEB128(localIndexForSymbol(statement.name) ?? 0));
             break;
@@ -234,7 +231,6 @@ import {
             break;
           case "returnStatement":
             emitExpression(statement.value);
-            console.log("return specified.")
             code.push(Opcodes.return);
             break;
         }
@@ -257,17 +253,15 @@ import {
       emptyArray
     ];
 
-    // TODO: optimise - some of the procs might have the same type signature
-    console.log(ast);
-    const funcTypes = ast.map(proc => [
-        functionType,
-        ...encodeVector(proc.args.map(_ => Valtype.f32)),
-        proc.statements.some(statement => statement.type === "returnStatement")
-          ? [...encodeVector([Valtype.f32])] // Include return type
-          : emptyArray // No return type
-      ]);
-      console.log("funcTypes: ",funcTypes);
-      console.log("encoded return type: ", encodeVector([Valtype.f32]));
+    const funcTypes = ast.map(proc => {
+        const hasReturn = proc.statements.some(statement => statement.type === "returnStatement");
+        return [
+            functionType,
+            ...encodeVector(proc.args.map(_ => Valtype.f32)),
+            ...hasReturn ? [encodeVector([Valtype.f32])] : [emptyArray]
+        ].flat();
+    });
+
     // the type section is a vector of function types
     const typeSection = createSection(
       Section.type,
